@@ -1,0 +1,6 @@
+{
+  "name": "Study & Learning App",
+  "description": "A simple web application for learning and studying with light and dark themes, flashcards, revision notes, Pomodoro study timer, and a Gemini API key guide, built with Python.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
