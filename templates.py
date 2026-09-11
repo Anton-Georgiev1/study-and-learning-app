@@ -1095,20 +1095,54 @@ def render_app() -> str:
           </p>
         </div>
 
-        <!-- Real-time Status Card -->
+        <!-- Interactive Key Storage & Management Panel (Store, Change, Delete, Test) -->
         <div class="card-panel" style="margin-bottom:2rem; border-color:var(--primary);">
-          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem;">
+          <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:1.25rem; flex-wrap:wrap; gap:0.75rem;">
             <div>
-              <div style="font-size:0.75rem; font-weight:800; text-transform:uppercase; color:var(--primary);">Current Server Connection</div>
-              <div id="guide-status-title" style="font-size:1.25rem; font-weight:800; color:var(--text-main); margin-top:0.25rem;">
-                Checking API Key...
+              <div style="font-size:0.75rem; font-weight:800; text-transform:uppercase; color:var(--primary); letter-spacing:0.05em;">API Key Settings & Storage</div>
+              <div id="guide-status-title" style="font-size:1.35rem; font-weight:800; color:var(--text-main); margin-top:0.25rem;">
+                Gemini API Key
               </div>
-              <div id="guide-status-sub" style="font-size:0.875rem; color:var(--text-secondary); margin-top:0.25rem;"></div>
+              <div id="guide-status-sub" style="font-size:0.875rem; color:var(--text-secondary); margin-top:0.25rem;">
+                Enter your key once to store and activate it. You can change, test, or delete it anytime.
+              </div>
             </div>
-            <button class="btn btn-primary" onclick="testConnection()">
-              <i data-lucide="refresh-cw" class="icon-sm"></i>
-              <span>Test Live Connection</span>
-            </button>
+            <div id="key-badge-container">
+              <span class="pill-status disconnected" id="key-active-badge">
+                <span class="pulse-dot"></span>
+                <span id="key-active-badge-text">Checking...</span>
+              </span>
+            </div>
+          </div>
+
+          <!-- Input Row -->
+          <div style="display:flex; flex-direction:column; gap:0.75rem;">
+            <div style="position:relative; display:flex; align-items:center;">
+              <input type="password" id="gemini-key-input" placeholder="Paste your Google Gemini API key (starts with AIzaSy...)" style="padding-right:2.8rem; font-family:var(--font-mono); font-size:0.875rem;" />
+              <button type="button" onclick="toggleKeyVisibility()" style="position:absolute; right:0.75rem; background:none; border:none; color:var(--primary); cursor:pointer; padding:0.25rem; display:flex; align-items:center;" title="Toggle show/hide key">
+                <i data-lucide="eye" id="key-eye-icon" class="icon-sm"></i>
+              </button>
+            </div>
+
+            <!-- Action Buttons: Save/Update, Test Connection, Delete Key -->
+            <div style="display:flex; gap:0.6rem; flex-wrap:wrap; align-items:center;">
+              <button class="btn btn-primary" id="btn-save-key" onclick="saveGeminiKey()">
+                <i data-lucide="check" class="icon-sm"></i>
+                <span id="btn-save-key-text">Save & Store Key</span>
+              </button>
+              <button class="btn btn-secondary" id="btn-test-key" onclick="testConnection()">
+                <i data-lucide="refresh-cw" class="icon-sm"></i>
+                <span>Test Live Connection</span>
+              </button>
+              <button class="btn btn-secondary" id="btn-delete-key" style="display:none;" onclick="deleteGeminiKey()">
+                <i data-lucide="trash-2" class="icon-sm"></i>
+                <span>Delete Key</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Live feedback box -->
+          <div id="key-feedback-box" style="display:none; margin-top:1rem; padding:0.75rem 1rem; border-radius:var(--radius-md); font-size:0.85rem; border:1px solid var(--border-subtle); background:var(--bg-muted);">
           </div>
         </div>
 
@@ -1366,19 +1400,112 @@ def render_app() -> str:
       const ribbonText = document.getElementById('ribbon-status-text');
       const guideTitle = document.getElementById('guide-status-title');
       const guideSub = document.getElementById('guide-status-sub');
+      const keyBadge = document.getElementById('key-active-badge');
+      const keyBadgeText = document.getElementById('key-active-badge-text');
+      const btnSaveText = document.getElementById('btn-save-key-text');
+      const btnDelete = document.getElementById('btn-delete-key');
+      const keyInput = document.getElementById('gemini-key-input');
+
+      appState.gemini_configured = !!status.gemini_configured;
 
       if (status.gemini_configured) {
-        ribbonBadge.className = 'pill-status connected';
-        ribbonText.textContent = 'Active (' + status.gemini_preview + ')';
-        guideTitle.textContent = 'Gemini API Connected';
-        guideTitle.style.color = 'var(--primary)';
-        guideSub.textContent = 'High-speed model ' + status.gemini_preview + ' ready for flashcards, quiz, and study tutoring.';
+        if (ribbonBadge) ribbonBadge.className = 'pill-status connected';
+        if (ribbonText) ribbonText.textContent = 'Active (' + status.gemini_preview + ')';
+
+        if (guideTitle) guideTitle.textContent = 'Gemini API Connected';
+        if (guideSub) guideSub.textContent = 'Key ' + status.gemini_preview + ' is stored and ready for flashcards, quizzes, and tutoring.';
+
+        if (keyBadge) keyBadge.className = 'pill-status connected';
+        if (keyBadgeText) keyBadgeText.textContent = 'Active (' + status.gemini_preview + ')';
+
+        if (btnSaveText) btnSaveText.textContent = 'Change / Update Key';
+        if (btnDelete) btnDelete.style.display = 'inline-flex';
+        if (keyInput) keyInput.placeholder = 'Enter new key to replace (' + status.gemini_preview + ')';
       } else {
-        ribbonBadge.className = 'pill-status disconnected';
-        ribbonText.textContent = 'Key Not Set';
-        guideTitle.textContent = 'Key Not Configured';
-        guideTitle.style.color = 'var(--text-secondary)';
-        guideSub.textContent = 'Add GEMINI_API_KEY in the AI Studio Secrets panel or .env file to enable AI study powers.';
+        if (ribbonBadge) ribbonBadge.className = 'pill-status disconnected';
+        if (ribbonText) ribbonText.textContent = 'Key Not Set';
+
+        if (guideTitle) guideTitle.textContent = 'No Key Configured';
+        if (guideSub) guideSub.textContent = 'Enter your Gemini API key below to store it and unlock AI study features.';
+
+        if (keyBadge) keyBadge.className = 'pill-status disconnected';
+        if (keyBadgeText) keyBadgeText.textContent = 'Key Not Stored';
+
+        if (btnSaveText) btnSaveText.textContent = 'Save & Store Key';
+        if (btnDelete) btnDelete.style.display = 'none';
+        if (keyInput) keyInput.placeholder = 'Paste your Google Gemini API key (starts with AIzaSy...)';
+      }
+      refreshIcons();
+    }
+
+    function toggleKeyVisibility() {
+      const input = document.getElementById('gemini-key-input');
+      const icon = document.getElementById('key-eye-icon');
+      if (!input || !icon) return;
+      if (input.type === 'password') {
+        input.type = 'text';
+        icon.setAttribute('data-lucide', 'eye-off');
+      } else {
+        input.type = 'password';
+        icon.setAttribute('data-lucide', 'eye');
+      }
+      refreshIcons();
+    }
+
+    async function saveGeminiKey() {
+      const input = document.getElementById('gemini-key-input');
+      const key = input ? input.value.trim() : '';
+      if (!key) {
+        showToast('Please enter an API key');
+        if (input) input.focus();
+        return;
+      }
+      showToast('Saving Gemini API key...');
+      try {
+        const res = await fetch('/api/gemini/key', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ api_key: key })
+        });
+        const data = await res.json();
+        if (res.ok && data.status === 'saved') {
+          showToast('Gemini API key stored successfully');
+          if (input) input.value = '';
+          const st = await fetch('/api/status').then(r => r.json());
+          updateGeminiStatus(st);
+          testConnection();
+        } else {
+          showToast(data.error || 'Failed to save key');
+        }
+      } catch (err) {
+        showToast('Error saving key: ' + err.message);
+      }
+    }
+
+    async function deleteGeminiKey() {
+      if (!confirm('Are you sure you want to remove the stored Gemini API key?')) {
+        return;
+      }
+      showToast('Deleting stored key...');
+      try {
+        const res = await fetch('/api/gemini/key/delete', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' }
+        });
+        const data = await res.json();
+        if (res.ok && data.status === 'deleted') {
+          showToast('Gemini API key deleted');
+          const input = document.getElementById('gemini-key-input');
+          if (input) input.value = '';
+          const feedback = document.getElementById('key-feedback-box');
+          if (feedback) feedback.style.display = 'none';
+          const st = await fetch('/api/status').then(r => r.json());
+          updateGeminiStatus(st);
+        } else {
+          showToast('Failed to delete key');
+        }
+      } catch (err) {
+        showToast('Error deleting key: ' + err.message);
       }
     }
 
@@ -1813,6 +1940,12 @@ def render_app() -> str:
 
     // Connection test
     async function testConnection() {
+      const feedback = document.getElementById('key-feedback-box');
+      if (feedback) {
+        feedback.style.display = 'block';
+        feedback.innerHTML = '<div style="display:flex; align-items:center; gap:0.4rem; color:var(--text-secondary);"><i data-lucide="refresh-cw" class="icon-sm"></i> <span>Testing connection with Google Gemini...</span></div>';
+        refreshIcons();
+      }
       showToast('Testing Gemini Connection...');
       try {
         const res = await fetch('/api/gemini/explain', {
@@ -1822,15 +1955,31 @@ def render_app() -> str:
         });
         const data = await res.json();
         if (data.text) {
-          showToast('Gemini Connection Verified: ' + data.model);
+          showToast('Gemini Verified: ' + data.model);
+          if (feedback) {
+            feedback.style.display = 'block';
+            feedback.style.borderColor = 'var(--primary)';
+            feedback.innerHTML = '<div style="display:flex; align-items:center; gap:0.4rem; font-weight:700; color:var(--primary);"><i data-lucide="check-circle-2" class="icon-sm"></i> <span>Live Connection Verified (' + data.model + ')</span></div><div style="margin-top:0.35rem; color:var(--text-secondary); font-size:0.85rem;">Gemini replied: "' + data.text + '"</div>';
+          }
           const st = await fetch('/api/status').then(r => r.json());
           updateGeminiStatus(st);
         } else {
           showToast('Key issue: ' + (data.error || 'Check key'));
+          if (feedback) {
+            feedback.style.display = 'block';
+            feedback.style.borderColor = 'var(--border-strong)';
+            feedback.innerHTML = '<div style="display:flex; align-items:center; gap:0.4rem; font-weight:700; color:var(--text-main);"><i data-lucide="alert-circle" class="icon-sm"></i> <span>Connection Error</span></div><div style="margin-top:0.35rem; color:var(--text-secondary); font-size:0.85rem;">' + (data.error || 'Please check if the API key is valid.') + '</div>';
+          }
         }
       } catch (e) {
         showToast('Connection failed: ' + e.message);
+        if (feedback) {
+          feedback.style.display = 'block';
+          feedback.style.borderColor = 'var(--border-strong)';
+          feedback.innerHTML = '<div style="display:flex; align-items:center; gap:0.4rem; font-weight:700; color:var(--text-main);"><i data-lucide="alert-circle" class="icon-sm"></i> <span>Request Failed</span></div><div style="margin-top:0.35rem; color:var(--text-secondary); font-size:0.85rem;">' + e.message + '</div>';
+        }
       }
+      refreshIcons();
     }
 
     // Modals
