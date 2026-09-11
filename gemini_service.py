@@ -11,8 +11,15 @@ import urllib.error
 MODELS_TO_TRY = ["gemini-3.5-flash-lite", "gemini-3.6-flash"]
 
 def get_api_key() -> str:
-    """Retrieve GEMINI_API_KEY from environment."""
-    return os.environ.get("GEMINI_API_KEY", "").strip()
+    """Retrieve GEMINI_API_KEY from environment or persistent study storage."""
+    env_key = os.environ.get("GEMINI_API_KEY", "").strip()
+    if env_key:
+        return env_key
+    try:
+        import study_storage
+        return study_storage.get_stored_api_key()
+    except Exception:
+        return ""
 
 def call_gemini(prompt: str, system_instruction: str = None) -> dict:
     """
