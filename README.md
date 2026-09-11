@@ -1,5 +1,5 @@
 <div align="center">
-  <h1>✨ StudyHub — Smart Learning Web Application</h1>
+  <h1>✨ StudyHub -Smart Learning Web Application</h1>
   <p><strong>A Dribbble-inspired, minimalist, distraction-free study station powered by Google Gemini AI. Built entirely with pure Python and zero third-party dependencies.</strong></p>
 
   <p>
