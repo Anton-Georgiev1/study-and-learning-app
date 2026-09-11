@@ -78,11 +78,12 @@ class StudyAppHandler(BaseHTTPRequestHandler):
             api_key = gemini_service.get_api_key()
             has_key = bool(api_key)
             data = study_storage.get_data()
-            key_preview = f"••••{api_key[-4:]}" if (has_key and len(api_key) >= 4) else "Active"
+            key_preview = f"••••{api_key[-4:]}" if (has_key and len(api_key) >= 4) else ("Active" if has_key else "Not configured")
             self.send_json(200, {
                 "status": "ok",
                 "gemini_configured": has_key,
-                "gemini_preview": key_preview if has_key else "Not configured",
+                "gemini_preview": key_preview,
+                "has_stored_key": bool(study_storage.get_stored_api_key()),
                 "stats": data.get("stats", {}),
                 "decks_count": len(data.get("decks", [])),
                 "notes_count": len(data.get("notes", []))
@@ -196,6 +197,27 @@ class StudyAppHandler(BaseHTTPRequestHandler):
                 return
             res = gemini_service.generate_quiz(topic)
             self.send_json(200 if "quiz" in res else 400, res)
+
+        elif path == "/api/gemini/key":
+            api_key = body.get("api_key", "").strip()
+            if not api_key:
+                self.send_json(400, {"error": "API key cannot be empty"})
+                return
+            study_storage.set_stored_api_key(api_key)
+            preview = f"••••{api_key[-4:]}" if len(api_key) >= 4 else "Active"
+            self.send_json(200, {
+                "status": "saved",
+                "gemini_configured": True,
+                "gemini_preview": preview
+            })
+
+        elif path in ["/api/gemini/key/delete", "/api/gemini/delete-key"]:
+            study_storage.delete_stored_api_key()
+            self.send_json(200, {
+                "status": "deleted",
+                "gemini_configured": False,
+                "gemini_preview": "Not configured"
+            })
 
         else:
             self.send_error(404, "Not Found")
