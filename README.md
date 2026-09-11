@@ -1,10 +1,4 @@
 <div align="center">
-  <img width="1200" height="400" alt="StudyHub Banner" src="https://ai.google.dev/static/site-assets/images/share-ais-513315318.png" style="border-radius: 12px; object-fit: cover;" />
-</div>
-
-<br />
-
-<div align="center">
   <h1>✨ StudyHub — Smart Learning Web Application</h1>
   <p><strong>A Dribbble-inspired, minimalist, distraction-free study station powered by Google Gemini AI. Built entirely with pure Python and zero third-party dependencies.</strong></p>
 
