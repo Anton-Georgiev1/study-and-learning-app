@@ -8,6 +8,7 @@ import time
 from pathlib import Path
 
 DATA_FILE = Path(__file__).parent / "study_data.json"
+ENV_FILE = Path(__file__).parent / ".env"
 
 DEFAULT_DATA = {
     "decks": [
@@ -186,3 +187,78 @@ def increment_stat(name: str, value: int = 1) -> dict:
         stats[name] = stats.get(name, 0) + value
         save_data(data)
     return stats
+
+
+def get_stored_api_key() -> str:
+    """Retrieve stored Gemini API key from persistent data or .env."""
+    data = get_data()
+    key = data.get("gemini_api_key", "").strip()
+    if key:
+        return key
+    if ENV_FILE.exists():
+        try:
+            with open(ENV_FILE, "r", encoding="utf-8") as f:
+                for line in f:
+                    line = line.strip()
+                    if line.startswith("GEMINI_API_KEY="):
+                        val = line.split("=", 1)[1].strip().strip('"').strip("'")
+                        if val:
+                            return val
+        except Exception:
+            pass
+    return ""
+
+
+def set_stored_api_key(api_key: str):
+    """Save Gemini API key in study_data.json, .env, and runtime os.environ."""
+    import os
+    clean_key = api_key.strip()
+    data = get_data()
+    data["gemini_api_key"] = clean_key
+    save_data(data)
+    os.environ["GEMINI_API_KEY"] = clean_key
+
+    # Synchronize into .env file
+    try:
+        lines = []
+        found = False
+        if ENV_FILE.exists():
+            with open(ENV_FILE, "r", encoding="utf-8") as f:
+                lines = f.readlines()
+        new_lines = []
+        for line in lines:
+            if line.strip().startswith("GEMINI_API_KEY="):
+                new_lines.append(f'GEMINI_API_KEY="{clean_key}"\n')
+                found = True
+            else:
+                new_lines.append(line)
+        if not found:
+            new_lines.append(f'GEMINI_API_KEY="{clean_key}"\n')
+        with open(ENV_FILE, "w", encoding="utf-8") as f:
+            f.writelines(new_lines)
+    except Exception as e:
+        print(f"Notice saving .env: {e}")
+
+
+def delete_stored_api_key():
+    """Remove stored Gemini API key from persistent data, .env, and runtime os.environ."""
+    import os
+    data = get_data()
+    if "gemini_api_key" in data:
+        del data["gemini_api_key"]
+        save_data(data)
+
+    if "GEMINI_API_KEY" in os.environ:
+        del os.environ["GEMINI_API_KEY"]
+
+    if ENV_FILE.exists():
+        try:
+            lines = []
+            with open(ENV_FILE, "r", encoding="utf-8") as f:
+                lines = f.readlines()
+            new_lines = [l for l in lines if not l.strip().startswith("GEMINI_API_KEY=")]
+            with open(ENV_FILE, "w", encoding="utf-8") as f:
+                f.writelines(new_lines)
+        except Exception as e:
+            print(f"Notice updating .env: {e}")
+
