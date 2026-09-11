@@ -1,0 +1,75 @@
+{
+  "decks": [
+    {
+      "id": "deck-python-101",
+      "title": "Python Core Concepts",
+      "description": "Essential Python language fundamentals and data structures",
+      "cards": [
+        {
+          "id": "c1",
+          "front": "What is the difference between a List and a Tuple in Python?",
+          "back": "Lists are mutable (can be changed after creation using methods like .append()), defined with square brackets []. Tuples are immutable (cannot be modified once created), defined with parentheses ()."
+        },
+        {
+          "id": "c2",
+          "front": "What does the 'is' operator check compared to '=='?",
+          "back": "'==' checks for equality of values (do both objects have the same content?). 'is' checks for identity (do both variables reference the exact same memory location?)."
+        },
+        {
+          "id": "c3",
+          "front": "What are Python Generators and why use them?",
+          "back": "Generators are functions that use the 'yield' statement to return an iterator that produces items lazily on-demand. They save memory by not loading large datasets all at once into RAM."
+        },
+        {
+          "id": "c4",
+          "front": "How does Python handle memory management?",
+          "back": "Python uses automatic memory management via reference counting combined with a cyclic garbage collector to detect and clean up circular references."
+        }
+      ]
+    },
+    {
+      "id": "deck-web-basics",
+      "title": "Web Architecture & HTTP",
+      "description": "Fundamental protocols and web communication models",
+      "cards": [
+        {
+          "id": "w1",
+          "front": "What is the difference between HTTP GET and POST requests?",
+          "back": "GET is idempotent and meant for retrieving data with parameters in the URL query string. POST is meant for submitting data to create or mutate server state, sending the payload in the request body."
+        },
+        {
+          "id": "w2",
+          "front": "What do HTTP status codes 200, 404, and 500 mean?",
+          "back": "200: OK (successful request).\n404: Not Found (requested resource doesn't exist).\n500: Internal Server Error (server encountered an unexpected error)."
+        },
+        {
+          "id": "w3",
+          "front": "What is CORS (Cross-Origin Resource Sharing)?",
+          "back": "A browser security mechanism using HTTP headers to permit or restrict resources requested from a domain outside the origin domain from which the first resource was served."
+        }
+      ]
+    }
+  ],
+  "notes": [
+    {
+      "id": "n1",
+      "title": "Feynman Technique for Efficient Learning",
+      "topic": "Study Strategies",
+      "content": "1. Choose a concept to learn.\n2. Teach it to a 12-year-old using simple words and analogies.\n3. Identify gaps in your explanation where you used jargon or got stuck.\n4. Return to source material to fill the gaps, refine, and simplify.",
+      "updated_at": "2026-09-11 10:00"
+    },
+    {
+      "id": "n2",
+      "title": "Active Recall & Spaced Repetition",
+      "topic": "Cognitive Science",
+      "content": "Active recall forces the brain to retrieve information rather than passively reviewing notes. Combining this with spaced intervals (e.g. 1 day, 3 days, 1 week, 1 month) drastically improves long-term retention.",
+      "updated_at": "2026-09-11 11:30"
+    }
+  ],
+  "stats": {
+    "pomodoros_completed": 0,
+    "study_minutes": 0,
+    "cards_reviewed": 0,
+    "streak_days": 1
+  }
+}
